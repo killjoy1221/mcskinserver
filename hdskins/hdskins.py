@@ -67,6 +67,24 @@ def require_formdata(*formdata):
     return callable
 
 
+@app.route('/')
+def root():
+    def status():
+        try:
+            open_database()
+            return True
+        except:
+            return False
+
+    return jsonify(
+        implementation='valhalla',
+        name='HD Skins',
+        offlineMode=offline_mode,
+        status=status(),
+        version=1
+    )
+
+
 def metadata_json(data):
     for meta in data:
         yield meta.key, meta.val
@@ -104,6 +122,9 @@ def get_textures(user):
 if bool(app.config['DEBUG']):
     @app.route('/textures/<image>')
     def get_image(image):
+        """This function is used during development to test the texture fetching.
+        In production, a static web-server should be used.
+        """
         return send_from_directory(root_dir + '/textures', image, mimetype='image/png')
 
 
@@ -308,3 +329,6 @@ def valueError(error):
     if app.config['DEBUG']:
         raise error
     return jsonify(message=type(error).__name__ + ": " + str(error)), 400
+
+if __name__ == '__main__':
+    app.run()
